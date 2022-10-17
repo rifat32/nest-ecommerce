@@ -60,6 +60,7 @@ export class CategoriesService {
      
       FROM
       categories 
+      
       where (
         categories.business_id = 9 
         AND 
@@ -67,9 +68,11 @@ export class CategoriesService {
        
         AND
         categories.deleted_at IS NULL
-  
+     
         )
+   
         ${nameNullParent}
+        ORDER BY categories.id ASC
       ;`);
   
     }
@@ -91,6 +94,7 @@ export class CategoriesService {
   
         )
         ${nameNullParent}  
+       
       ;`);
       }
     // if (text?.replace(/%/g, '')) {

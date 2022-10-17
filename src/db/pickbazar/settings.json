@@ -20,7 +20,7 @@
     "useOtp": false,
     "currency": "BDT",
     "taxClass": 1,
-    "siteTitle": "Pickbazar",
+    "siteTitle": "BDPetcare",
     "deliveryTime": [
       {
         "title": "Express Delivery",
