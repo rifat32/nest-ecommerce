@@ -25,6 +25,10 @@ import {
 } from './dto/create-order-status.dto';
 import { GetOrderFilesDto } from './dto/get-downloads.dto';
 import Fuse from 'fuse.js';
+import { InjectConnection } from '@nestjs/typeorm';
+import { Connection } from 'mysql2';
+import { getOrderByCodeQuery, getOrderQuery, insertOrderDetailsQuery, insertOrderQuery } from './queries/orderQuery';
+import { getSingleOrder } from './util';
 
 const orders = plainToClass(Order, ordersJson);
 const orderStatus = plainToClass(OrderStatus, orderStatusJson);
@@ -43,8 +47,35 @@ export class OrdersService {
   private orderStatus: OrderStatus[] = orderStatus;
   private orderFiles: OrderFiles[] = orderFiles;
 
-  create(createOrderInput: CreateOrderDto) {
-    return this.orders[0];
+  constructor(
+    @InjectConnection() private readonly connection: Connection,
+  
+    ) {}
+
+    
+
+
+ async create(createOrderInput: CreateOrderDto) {
+ 
+
+    let insertOrderQueryString = insertOrderQuery(createOrderInput)
+   
+let insertOrderQueryResult:any = await  this.connection.query(insertOrderQueryString);
+let orderId = insertOrderQueryResult.insertId
+
+for(let i = 0; i < createOrderInput.products.length; i++){
+  let insertOrderDetailsQueryString = insertOrderDetailsQuery(createOrderInput,orderId,createOrderInput.products[i])
+  let insertOrderDetailsQueryResult:any = await  this.connection.query(insertOrderDetailsQueryString);
+}
+
+let getOrderQueryString = getOrderQuery(orderId);
+
+let orderPos:any = await  this.connection.query(getOrderQueryString);
+// console.log("orderPos",orderPos)
+   let order =   getSingleOrder(orderPos[0])
+
+
+    return order;
   }
 
   getOrders({
@@ -73,7 +104,15 @@ export class OrdersService {
     };
   }
 
-  getOrderById(id: string): Order {
+ async getOrderById(id: string) {
+    let getOrderQueryString = getOrderByCodeQuery(id);
+
+    let orderPos:any = await  this.connection.query(getOrderQueryString);
+    console.log("orderQQ",getOrderQueryString)
+     console.log("orderPos",orderPos)
+
+       let order =   getSingleOrder(orderPos[0])
+       return order;
     return this.orders.find(
       (p) => p.id === Number(id) || p.tracking_number === id,
     );
@@ -84,6 +123,7 @@ export class OrdersService {
     const parentOrder = this.orders.find(
       (p) => p.tracking_number === tracking_number,
     );
+    console.log("ffffffff");
     if (!parentOrder) {
       return this.orders[0];
     }
@@ -140,6 +180,7 @@ export class OrdersService {
   }
 
   update(id: number, updateOrderInput: UpdateOrderDto) {
+    console.log("ffffffff");
     return this.orders[0];
   }
 

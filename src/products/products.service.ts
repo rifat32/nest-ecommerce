@@ -76,14 +76,14 @@ export class ProductsService {
           $and: searchText,
         })
         ?.map(({ item }) => item);
-console.log(searchText)
+// console.log(searchText)
         let nameSearch = "";
         let categorySearch = "";
         searchText.map(el => {
           if(el.name){
             nameSearch  = `AND (products.name LIKE ${`'%${el.name}%'`})`
           }
-          console.log("search......",el["categories.slug"])
+          // console.log("search......",el["categories.slug"])
           if(el["categories.slug"]){
             categorySearch  = ` 
             AND (
@@ -128,7 +128,7 @@ console.log(searchText)
      ${nameSearch}
      ${categorySearch}
      ;`
-     console.log(rawQuery)
+    //  console.log(rawQuery)
      queryResult = await  this.connection.query(rawQuery);
 
 // console.log(rawQuery)
