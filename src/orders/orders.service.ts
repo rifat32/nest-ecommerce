@@ -27,8 +27,8 @@ import { GetOrderFilesDto } from './dto/get-downloads.dto';
 import Fuse from 'fuse.js';
 import { InjectConnection } from '@nestjs/typeorm';
 import { Connection } from 'mysql2';
-import { getOrderByCodeQuery, getOrderQuery, insertOrderDetailsQuery, insertOrderQuery } from './queries/orderQuery';
-import { getSingleOrder } from './util';
+import { getOrderByCodeQuery, getOrderDetailsQuery, getOrderQuery, insertOrderDetailsQuery, insertOrderQuery } from './queries/orderQuery';
+import { getSingleOrder, getSingleOrderDetails } from './data_mapper';
 
 const orders = plainToClass(Order, ordersJson);
 const orderStatus = plainToClass(OrderStatus, orderStatusJson);
@@ -49,30 +49,30 @@ export class OrdersService {
 
   constructor(
     @InjectConnection() private readonly connection: Connection,
-  
-    ) {}
 
-    
+  ) { }
 
 
- async create(createOrderInput: CreateOrderDto) {
- 
+
+
+  async create(createOrderInput: CreateOrderDto) {
+
 
     let insertOrderQueryString = insertOrderQuery(createOrderInput)
-   
-let insertOrderQueryResult:any = await  this.connection.query(insertOrderQueryString);
-let orderId = insertOrderQueryResult.insertId
 
-for(let i = 0; i < createOrderInput.products.length; i++){
-  let insertOrderDetailsQueryString = insertOrderDetailsQuery(createOrderInput,orderId,createOrderInput.products[i])
-  let insertOrderDetailsQueryResult:any = await  this.connection.query(insertOrderDetailsQueryString);
-}
+    let insertOrderQueryResult: any = await this.connection.query(insertOrderQueryString);
+    let orderId = insertOrderQueryResult.insertId
 
-let getOrderQueryString = getOrderQuery(orderId);
+    for (let i = 0; i < createOrderInput.products.length; i++) {
+      let insertOrderDetailsQueryString = insertOrderDetailsQuery(createOrderInput, orderId, createOrderInput.products[i])
+      let insertOrderDetailsQueryResult: any = await this.connection.query(insertOrderDetailsQueryString);
+    }
 
-let orderPos:any = await  this.connection.query(getOrderQueryString);
-// console.log("orderPos",orderPos)
-   let order =   getSingleOrder(orderPos[0])
+    let getOrderQueryString = getOrderQuery(orderId);
+
+    let orderPos: any = await this.connection.query(getOrderQueryString);
+    // console.log("orderPos",orderPos)
+    let order = getSingleOrder(orderPos[0])
 
 
     return order;
@@ -104,15 +104,17 @@ let orderPos:any = await  this.connection.query(getOrderQueryString);
     };
   }
 
- async getOrderById(id: string) {
+  async getOrderById(id: string) {
     let getOrderQueryString = getOrderByCodeQuery(id);
 
-    let orderPos:any = await  this.connection.query(getOrderQueryString);
-    console.log("orderQQ",getOrderQueryString)
-     console.log("orderPos",orderPos)
+    let orderPos: any = await this.connection.query(getOrderQueryString);
+    let getOrderDetailsQueryString = getOrderDetailsQuery(orderPos[0].id);
+    let orderPosDetails: any = await this.connection.query(getOrderDetailsQueryString);
 
-       let order =   getSingleOrder(orderPos[0])
-       return order;
+
+
+    let order = getSingleOrderDetails(orderPos[0], orderPosDetails)
+    return order;
     return this.orders.find(
       (p) => p.id === Number(id) || p.tracking_number === id,
     );

@@ -18,32 +18,90 @@ import { v4 as uuidv4 } from 'uuid';
 import { plainToClass } from 'class-transformer';
 import { User } from 'src/users/entities/user.entity';
 import usersJson from '@db/users.json';
+
+import { InjectConnection } from '@nestjs/typeorm';
+import { Connection } from 'mysql2';
+import * as bcrypt from 'bcrypt';
+import { getUserByEmailQuery, getUserQuery, insertUserQuery } from './queries/authQuery';
+import { JwtService } from '@nestjs/jwt';
 const users = plainToClass(User, usersJson);
 
 @Injectable()
 export class AuthService {
   private users: User[] = users;
-  async register(createUserInput: RegisterDto): Promise<AuthResponse> {
-    const user: User = {
-      id: uuidv4(),
-      ...users[0],
-      ...createUserInput,
-      created_at: new Date(),
-      updated_at: new Date(),
-    };
 
-    this.users.push(user);
+
+  constructor(
+    @InjectConnection() private readonly connection: Connection,
+    private jwtService: JwtService
+  ) { }
+
+
+  async register(createUserInput: RegisterDto): Promise<AuthResponse> {
+    try {
+      const salt = await bcrypt.genSalt();
+const hashPassword = await bcrypt.hash(createUserInput.password, salt);
+    createUserInput.password = hashPassword;
+
+    let insertUserQueryString = insertUserQuery(createUserInput);
+    let insertUserQueryResult: any = await this.connection.query(insertUserQueryString);
+    let userId = insertUserQueryResult.insertId
+
+    let getUserQueryString = getUserQuery(userId);
+    let getUserQueryResult: any = await this.connection.query(getUserQueryString);
+    delete getUserQueryResult[0].password;
+ 
+    const payload = { username: getUserQueryResult[0].name, sub: getUserQueryResult[0].id};
+    let token = this.jwtService.sign(payload)
+    // console.log(token)
+    // await this.connection.query("give me run time error");
+    // const user: User = {
+    //   id: uuidv4(),
+    //   ...users[0],
+    //   ...createUserInput,
+    //   created_at: new Date(),
+    //   updated_at: new Date(),
+    // };
+
+    // this.users.push(user);
+  
     return {
-      token: 'jwt token',
+      token: token,
       permissions: ['super_admin', 'customer'],
     };
+    } catch (error) {
+      return {
+        token: '',
+        permissions: [],
+      };
+    }
+   
   }
   async login(loginInput: LoginDto): Promise<AuthResponse> {
-    console.log(loginInput);
-    return {
-      token: 'jwt token',
-      permissions: ['super_admin', 'customer'],
-    };
+    let getUserQueryString = getUserByEmailQuery(loginInput.email);
+    let getUserQueryResult: any = await this.connection.query(getUserQueryString);
+    const isMatch = await bcrypt.compare(loginInput.password, getUserQueryResult[0].password);
+    if(isMatch) {
+      delete getUserQueryResult[0].password;
+      const payload = { username: getUserQueryResult[0].name, sub: getUserQueryResult[0].id};
+      let token = this.jwtService.sign(payload)
+      return {
+        token: 'jwt token',
+        permissions: ['super_admin', 'customer'],
+      };
+    } 
+    else {
+      return {
+        token: '',
+        permissions: [],
+      };
+
+    }
+   
+ 
+  
+   
+   
   }
   async changePassword(
     changePasswordInput: ChangePasswordDto,

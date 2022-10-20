@@ -108,7 +108,7 @@ WHERE (orders.id = ${orderId})
       `
 }
 export const getOrderByCodeQuery = (orderCode:string) => {
-    let timeNow = new Date().toISOString().slice(0, 19).replace('T', ' ');
+    
     return `
 SELECT 
 *
@@ -118,4 +118,43 @@ orders
 WHERE (orders.code = '${orderCode}')
     ;
       `
+}
+export const getOrderDetailsQuery = (orderId:string) => {
+    
+
+
+  return `
+SELECT 
+products.name as product_name,
+variations.id as vid,
+products.product_description as product_description,
+products.image as product_image,
+products.created_at as product_created_at,
+products.updated_at as product_updated_at,
+products.deleted_at as product_deleted_at,
+order_details.price as order_price,
+order_details.created_at as order_created_at,
+order_details.updated_at as order_updated_at,
+order_details.quantity as order_quantity,
+order_details.order_id
+FROM 
+order_details 
+left join 
+variations 
+on 
+order_details.variation_id = variations.id
+left join 
+products 
+on 
+variations.product_id = products.id
+left join 
+variation_location_details 
+on
+variations.id = variation_location_details.variation_id
+WHERE (order_details.order_id = '${orderId}')
+  ;
+    `;
+
+
+
 }
