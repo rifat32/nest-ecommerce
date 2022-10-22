@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Request } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import {
   ChangePasswordDto,
@@ -12,6 +12,7 @@ import {
   VerifyForgetPasswordDto,
   VerifyOtpDto,
 } from './dto/create-auth.dto';
+import { JwtAuthGuard } from './jwt-auth.guard';
 
 @Controller()
 export class AuthController {
@@ -63,14 +64,15 @@ export class AuthController {
   ) {
     return this.authService.verifyForgetPasswordToken(verifyForgetPasswordDto);
   }
-
+  @UseGuards(JwtAuthGuard)
   @Get('me')
-  me() {
-    return this.authService.me();
+  me(@Request() req) {
+    return this.authService.me(req);
   }
+  @UseGuards(JwtAuthGuard)
   @Post('add-points')
-  addWalletPoints(@Body() addPointsDto: any) {
-    return this.authService.me();
+  addWalletPoints(@Body() addPointsDto: any,@Request() req) {
+    return this.authService.me(req);
   }
   @Post('contact-us')
   contactUs(@Body() addPointsDto: any) {

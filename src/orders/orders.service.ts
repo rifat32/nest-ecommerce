@@ -27,8 +27,8 @@ import { GetOrderFilesDto } from './dto/get-downloads.dto';
 import Fuse from 'fuse.js';
 import { InjectConnection } from '@nestjs/typeorm';
 import { Connection } from 'mysql2';
-import { getOrderByCodeQuery, getOrderDetailsQuery, getOrderQuery, insertOrderDetailsQuery, insertOrderQuery } from './queries/orderQuery';
-import { getSingleOrder, getSingleOrderDetails } from './data_mapper';
+import { getOrderByCodeQuery, getOrderDetailsQuery, getOrderQuery, getOrdersByUserIdQuery, insertOrderDetailsQuery, insertOrderQuery } from './queries/orderQuery';
+import { getSingleOrder, getSingleOrderDetails, getSingleOrderDetailsInDashboard } from './data_mapper';
 
 const orders = plainToClass(Order, ordersJson);
 const orderStatus = plainToClass(OrderStatus, orderStatusJson);
@@ -55,10 +55,9 @@ export class OrdersService {
 
 
 
-  async create(createOrderInput: CreateOrderDto) {
-
-
-    let insertOrderQueryString = insertOrderQuery(createOrderInput)
+  async create(createOrderInput: CreateOrderDto,req) {
+    let user = req.user?req.user:null;
+    let insertOrderQueryString = insertOrderQuery(createOrderInput,user)
 
     let insertOrderQueryResult: any = await this.connection.query(insertOrderQueryString);
     let orderId = insertOrderQueryResult.insertId
@@ -78,24 +77,59 @@ export class OrdersService {
     return order;
   }
 
-  getOrders({
+ async getOrders({
     limit,
     page,
     customer_id,
     tracking_number,
     search,
     shop_id,
-  }: GetOrdersDto): OrderPaginator {
+    
+  }: GetOrdersDto,req){
+
+
+
+
+
+
+
+
+
     if (!page) page = 1;
     if (!limit) limit = 15;
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;
 
-    let data: Order[] = this.orders;
+    // let data: Order[] = this.orders;
 
-    if (shop_id && shop_id !== 'undefined') {
-      data = this.orders?.filter((p) => p?.shop?.id === Number(shop_id));
-    }
+    // if (shop_id && shop_id !== 'undefined') {
+    //   data = this.orders?.filter((p) => p?.shop?.id === Number(shop_id));
+    // }
+
+    const data = [];
+    // get orders
+    let getOrdersByUserIdQueryString = getOrdersByUserIdQuery(req.user)
+    let orderPosList: any = await this.connection.query(getOrdersByUserIdQueryString);
+    // get order details for all
+ for(let i =0; i<orderPosList.length; i++) {
+  let getOrderDetailsQueryString = getOrderDetailsQuery(orderPosList[i].id);
+  let orderPosDetails: any = await this.connection.query(getOrderDetailsQueryString);
+  let order = getSingleOrderDetailsInDashboard(orderPosList[i], orderPosDetails,this.orderStatus);
+  data.push(order)
+ }
+
+
+
+    
+
+
+
+
+
+
+    console.log("orders query",getOrdersByUserIdQueryString)
+    // console.log("orders",getOrdersByUserIdQueryResult)
+
     const results = data.slice(startIndex, endIndex);
     const url = `/orders?search=${search}&limit=${limit}`;
     return {
@@ -113,7 +147,7 @@ export class OrdersService {
 
 
 
-    let order = getSingleOrderDetails(orderPos[0], orderPosDetails)
+    let order = getSingleOrderDetails(orderPos[0], orderPosDetails,this.orderStatus)
     return order;
     return this.orders.find(
       (p) => p.id === Number(id) || p.tracking_number === id,

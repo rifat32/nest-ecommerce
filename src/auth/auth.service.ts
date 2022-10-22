@@ -22,8 +22,9 @@ import usersJson from '@db/users.json';
 import { InjectConnection } from '@nestjs/typeorm';
 import { Connection } from 'mysql2';
 import * as bcrypt from 'bcrypt';
-import { getUserByEmailQuery, getUserQuery, insertUserQuery } from './queries/authQuery';
+import { getUserByEmailQuery, getUserByIdQuery, insertUserQuery } from './queries/authQuery';
 import { JwtService } from '@nestjs/jwt';
+import { getSingleUser } from './data-mapper';
 const users = plainToClass(User, usersJson);
 
 @Injectable()
@@ -47,10 +48,11 @@ const hashPassword = await bcrypt.hash(createUserInput.password, salt);
     let insertUserQueryResult: any = await this.connection.query(insertUserQueryString);
     let userId = insertUserQueryResult.insertId
 
-    let getUserQueryString = getUserQuery(userId);
+    let getUserQueryString = getUserByIdQuery(userId);
     let getUserQueryResult: any = await this.connection.query(getUserQueryString);
     delete getUserQueryResult[0].password;
  
+
     const payload = { username: getUserQueryResult[0].name, sub: getUserQueryResult[0].id};
     let token = this.jwtService.sign(payload)
     // console.log(token)
@@ -86,7 +88,7 @@ const hashPassword = await bcrypt.hash(createUserInput.password, salt);
       const payload = { username: getUserQueryResult[0].name, sub: getUserQueryResult[0].id};
       let token = this.jwtService.sign(payload)
       return {
-        token: 'jwt token',
+        token: token,
         permissions: ['super_admin', 'customer'],
       };
     } 
@@ -192,8 +194,12 @@ const hashPassword = await bcrypt.hash(createUserInput.password, salt);
   // public getUser(getUserArgs: GetUserArgs): User {
   //   return this.users.find((user) => user.id === getUserArgs.id);
   // }
-  me(): User {
-    return this.users[0];
+ async me(req) {
+    let getUserQueryString = getUserByIdQuery(req.user.userId);
+    let getUserQueryResult: any = await this.connection.query(getUserQueryString);
+    delete getUserQueryResult[0].password;
+
+    return getSingleUser(getUserQueryResult[0]);
   }
 
   // updateUser(id: number, updateUserInput: UpdateUserInput) {

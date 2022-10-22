@@ -38,7 +38,7 @@ export const insertUserQuery = (createUserInput: RegisterDto) => {
     ;
       `
 }
-export const getUserQuery = (userId) => {
+export const getUserByIdQuery = (userId) => {
   return `
   SELECT 
   *

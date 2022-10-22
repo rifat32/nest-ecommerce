@@ -29,6 +29,7 @@ import { ReportsModule } from './reports/reports.module';
 import { FeedbackModule } from './feedbacks/feedbacks.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
+import { JwtStrategy } from './auth/jwt.strategy';
 // import { DataSource } from 'typeorm';
 @Module({
   imports: [
@@ -36,10 +37,12 @@ import { DataSource } from 'typeorm';
       type: 'mysql',
       host: 'localhost',
       port: 3306,
-      username: 'root',
-      password: '',
-      database: 'bdpetcare_pos',
-
+      // username: 'root',
+      // password: '',
+      // database: 'bdpetcare_pos',
+      username: 'bdpetcare_admin',
+      password: 'bdpetcare_admin',
+      database: 'bdpetcare_ecom',
       
 
       
@@ -85,7 +88,7 @@ import { DataSource } from 'typeorm';
     FeedbackModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [JwtStrategy],
 })
 export class AppModule {
   constructor(private dataSource: DataSource) {}

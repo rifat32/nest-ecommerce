@@ -5,8 +5,12 @@ const  randomXToY = (minVal,maxVal) =>
   var randVal = minVal+(Math.random()*(maxVal-minVal));
   return Math.round(randVal);
 }
-export const insertOrderQuery = (createOrderInput:CreateOrderDto) => {
+export const insertOrderQuery = (createOrderInput:CreateOrderDto,user) => {
     let timeNow = new Date().toISOString().slice(0, 19).replace('T', ' ');
+    let userId = 1;
+    if(user) {
+      userId = user.userId
+    }
     return `
     INSERT INTO orders 
     (user_id,
@@ -31,7 +35,7 @@ export const insertOrderQuery = (createOrderInput:CreateOrderDto) => {
     
     VALUES
      (
-      1,
+      ${userId},
       '${`{"id":0,"user_id":1,"address":"${createOrderInput.shipping_address.street_address}","country":"${createOrderInput.shipping_address.country}","city":"${createOrderInput.shipping_address.city}","longitude":null,"latitude":null,"postal_code":"${createOrderInput.shipping_address.zip}","phone":"${createOrderInput.customer_contact}","alternative_phone_number":"${createOrderInput.customer_contact}","set_default":0,"created_at":"${timeNow}","updated_at":"${timeNow}","name":"Test Name","email":"test@gmail.com","billing_address":{"street_address": "${createOrderInput.billing_address.street_address}","country":"${createOrderInput.billing_address.country}","city":"${createOrderInput.billing_address.city}","state":"${createOrderInput.billing_address.state}","zip":"${createOrderInput.billing_address.zip}"}}`}',
     'pending'
     ,
@@ -121,8 +125,6 @@ WHERE (orders.code = '${orderCode}')
 }
 export const getOrderDetailsQuery = (orderId:string) => {
     
-
-
   return `
 SELECT 
 products.name as product_name,
@@ -155,6 +157,16 @@ WHERE (order_details.order_id = '${orderId}')
   ;
     `;
 
+}
 
+export const getOrdersByUserIdQuery = (user) => {
 
+  return `
+  SELECT 
+  *
+  FROM 
+  orders 
+  WHERE (orders.user_id = '${user.userId}')
+      ;
+        `
 }

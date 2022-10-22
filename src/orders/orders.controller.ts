@@ -8,6 +8,8 @@ import {
   Query,
   Put,
   ParseIntPipe,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -17,20 +19,23 @@ import { CreateOrderStatusDto } from './dto/create-order-status.dto';
 import { GetOrderStatusesDto } from './dto/get-order-statuses.dto';
 import { CheckoutVerificationDto } from './dto/verify-checkout.dto';
 import { GetOrderFilesDto, OrderFilesPaginator } from './dto/get-downloads.dto';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 @Controller('orders')
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() createOrderDto: CreateOrderDto) {
+  create(@Body() createOrderDto: CreateOrderDto,@Request() req) {
+    return this.ordersService.create(createOrderDto,req);
 
-    return this.ordersService.create(createOrderDto);
   }
-
+  @UseGuards(JwtAuthGuard)
   @Get()
-  async getOrders(@Query() query: GetOrdersDto): Promise<OrderPaginator> {
-    return this.ordersService.getOrders(query);
+  async getOrders(@Query() query: GetOrdersDto,@Request() req): Promise<OrderPaginator> {
+
+    return this.ordersService.getOrders(query,req);
   }
 
   @Get(':id')
