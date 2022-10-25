@@ -127,6 +127,7 @@ export class ProductsService {
       )
      ${nameSearch}
      ${categorySearch}
+     ORDER BY products.id DESC
      ;`
     //  console.log(rawQuery)
      queryResult = await  this.connection.query(rawQuery);
@@ -162,6 +163,7 @@ export class ProductsService {
         AND
         products.deleted_at IS NULL
         )
+        ORDER BY products.id DESC
       ;`);
 
 

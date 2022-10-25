@@ -37,12 +37,12 @@ import { JwtStrategy } from './auth/jwt.strategy';
       type: 'mysql',
       host: 'localhost',
       port: 3306,
-      // username: 'root',
-      // password: '',
-      // database: 'bdpetcare_pos',
-      username: 'bdpetcare_admin',
-      password: 'bdpetcare_admin',
-      database: 'bdpetcare_ecom',
+       username: 'root',
+       password: '',
+       database: 'bdpetcare_pos_new',
+      // username: 'bdpetcare_admin',
+      // password: 'bdpetcare_admin',
+      // database: 'bdpetcare_ecom',
       
 
       

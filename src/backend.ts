@@ -1,1 +1,1 @@
-export const backend = "https://dotzdemo.xyz/postest";
+export const backend = "https://bdpetcare.com/pos";

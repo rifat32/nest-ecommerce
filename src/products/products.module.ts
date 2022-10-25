@@ -5,14 +5,12 @@ import {
   PopularProductsController,
 } from './products.controller';
 import { productProviders } from './providers/bd-products.providers';
-import { DatabaseModule } from 'src/db/typeorm/database.module';
+
 
 @Module({
-  imports: [DatabaseModule],
+  imports: [],
   controllers: [ProductsController, PopularProductsController],
   providers: [
-    ...productProviders,
-   
     ProductsService
   ],
 })
