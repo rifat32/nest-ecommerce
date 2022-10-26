@@ -1,4 +1,4 @@
-import { RegisterDto } from "../dto/create-auth.dto";
+
 
 const  randomXToY = (minVal,maxVal) =>
 {
@@ -6,7 +6,7 @@ const  randomXToY = (minVal,maxVal) =>
   return Math.round(randVal);
 }
 
-export const insertUserQuery = (createUserInput: RegisterDto) => {
+export const insertUserQuery = (createUserInput) => {
     let timeNow = new Date().toISOString().slice(0, 19).replace('T', ' ');
     return `
     INSERT INTO users2 
@@ -81,6 +81,20 @@ export const getUserByIdQuery = (userId) => {
   
   FROM 
   users2 
+  WHERE (users2.id = '${userId}')
+      ;
+        `
+}
+export const updateUserByIdQuery = (userId,updateUserInfo) => {
+  let setInfo = ``;
+  updateUserInfo.map(el => {
+    setInfo += `${el.name} = '${el.value}'`
+  })
+
+  return `
+  UPDATE 
+  users2
+  SET ${setInfo}
   WHERE (users2.id = '${userId}')
       ;
         `

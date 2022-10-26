@@ -6,7 +6,10 @@ import {
   Put,
   Param,
   Delete,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { AddressesService } from './addresses.service';
 import { CreateAddressDto } from './dto/create-address.dto';
 import { UpdateAddressDto } from './dto/update-address.dto';
@@ -37,9 +40,9 @@ export class AddressesController {
   ) {
     return this.addressesService.update(+id, updateAddressDto);
   }
-
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  deleteAddress(@Param('id') id: string) {
-    return this.addressesService.remove(+id);
+  deleteAddress(@Param('id') id: string,@Request() req) {
+    return this.addressesService.remove(parseInt(id) ,req);
   }
 }

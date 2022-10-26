@@ -72,6 +72,7 @@ const hashPassword = await bcrypt.hash(createUserInput.password, salt);
       permissions: ['super_admin', 'customer'],
     };
     } catch (error) {
+      console.log('error.......',error)
       return {
         token: '',
         permissions: [],

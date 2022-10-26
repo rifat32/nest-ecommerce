@@ -8,6 +8,11 @@ import Fuse from 'fuse.js';
 import { User } from './entities/user.entity';
 import usersJson from '@db/users.json';
 import { paginate } from 'src/common/pagination/paginate';
+import { getUserByIdQuery, updateUserByIdQuery } from './queries/userQuery';
+import { getSingleUser } from './data-mapper';
+import { InjectConnection } from '@nestjs/typeorm';
+import { Connection } from 'mysql2';
+
 
 const users = plainToClass(User, usersJson);
 
@@ -20,6 +25,12 @@ const fuse = new Fuse(users, options);
 @Injectable()
 export class UsersService {
   private users: User[] = users;
+
+
+  constructor(
+    @InjectConnection() private readonly connection: Connection
+  ) { }
+
 
   create(createUserDto: CreateUserDto) {
     return this.users[0];
@@ -73,7 +84,44 @@ export class UsersService {
     return this.users.find((user) => user.id === id);
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
+ async update(id: number, updateUserDto: UpdateUserDto,req) {
+  let timeNow = new Date().toISOString().slice(0, 19).replace('T', ' ');
+    console.log("updateUserDto",updateUserDto)
+    let getUserQueryString = getUserByIdQuery(req.user.userId);
+    let getUserQueryResult: any = await this.connection.query(getUserQueryString);
+    // delete getUserQueryResult[0].password;
+    const updateUserInfo = [
+
+    ]
+    // update address
+  const address = JSON.parse(getUserQueryResult[0].address)
+  if(updateUserDto.address.length) {
+    updateUserDto.address.map((el:any)=> {
+      address.map((dbEl,dbIndex) => {
+        if(!el.id){
+          el.id = address[address.length - 1].id + 1
+          address.push(el)
+        }
+        if(el.id == dbEl.id) {
+          address[dbIndex] = {...address[dbIndex],title:el.title,address:el.address,updated_at:timeNow}
+        
+        }
+      })
+  
+    })
+    updateUserInfo.push({
+      name:'address',
+      value:JSON.stringify(address)
+    })
+    // console.log(address)
+
+  }
+
+// end of update address
+let updateUserQueryString = updateUserByIdQuery(req.user.userId,updateUserInfo);
+let updateUserQueryResult: any = await this.connection.query(updateUserQueryString);
+
+    // return getSingleUser(getUserQueryResult[0]);
     return this.users[0];
   }
 
