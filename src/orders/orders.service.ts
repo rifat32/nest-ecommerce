@@ -29,6 +29,8 @@ import { InjectConnection } from '@nestjs/typeorm';
 import { Connection } from 'mysql2';
 import { getOrderByCodeQuery, getOrderDetailsQuery, getOrderQuery, getOrdersByUserIdQuery, insertOrderDetailsQuery, insertOrderQuery } from './queries/orderQuery';
 import { getSingleOrder, getSingleOrderDetails, getSingleOrderDetailsInDashboard } from './data_mapper';
+import { getCouponByCodeQuery, getCouponByIdQuery } from 'src/coupons/queries/couponQuery';
+import { getSingleCoupon } from 'src/coupons/data-mapper';
 
 const orders = plainToClass(Order, ordersJson);
 const orderStatus = plainToClass(OrderStatus, orderStatusJson);
@@ -57,8 +59,30 @@ export class OrdersService {
 
   async create(createOrderInput: CreateOrderDto,req) {
     let user = req.user?req.user:null;
-    let insertOrderQueryString = insertOrderQuery(createOrderInput,user)
 
+    // get coupon
+    let getCouponByIdQueryString = getCouponByIdQuery(createOrderInput.coupon_id,req.user)
+    let getCouponByIdQueryQueryResult: any = await this.connection.query(getCouponByIdQueryString);
+    let coupon = null;
+
+
+
+
+   
+
+
+
+
+if(getCouponByIdQueryQueryResult.length){
+  coupon = getSingleCoupon(getCouponByIdQueryQueryResult[0]);
+} 
+ console.log("createOrderInput.coupon_id",createOrderInput.coupon_id)
+    console.log("getCouponByIdQueryQueryResult[0]",coupon)
+ // end get coupon
+
+//  insert order
+    let insertOrderQueryString = insertOrderQuery(createOrderInput,user,coupon)
+     console.log("query........",insertOrderQueryString)
     let insertOrderQueryResult: any = await this.connection.query(insertOrderQueryString);
     let orderId = insertOrderQueryResult.insertId
 
@@ -66,10 +90,12 @@ export class OrdersService {
       let insertOrderDetailsQueryString = insertOrderDetailsQuery(createOrderInput, orderId, createOrderInput.products[i])
       let insertOrderDetailsQueryResult: any = await this.connection.query(insertOrderDetailsQueryString);
     }
-
+//  end insert order 
+//   get order 
     let getOrderQueryString = getOrderQuery(orderId);
 
     let orderPos: any = await this.connection.query(getOrderQueryString);
+  //  end get order 
     // console.log("orderPos",orderPos)
     let order = getSingleOrder(orderPos[0])
 
@@ -117,14 +143,6 @@ export class OrdersService {
   let order = getSingleOrderDetailsInDashboard(orderPosList[i], orderPosDetails,this.orderStatus);
   data.push(order)
  }
-
-
-
-    
-
-
-
-
 
 
     console.log("orders query",getOrdersByUserIdQueryString)

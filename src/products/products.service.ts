@@ -12,7 +12,7 @@ import { InjectConnection } from '@nestjs/typeorm';
 import { Connection } from 'mysql2';
 import { DataSource, Repository } from 'typeorm';
 import { PRODUCT } from './entities/bd-product.entity';
-import { getSingleProduct } from './single-product';
+import {  getSingleProductDetails } from './single-product';
 
 const products = plainToClass(Product, productsJson);
 
@@ -105,7 +105,9 @@ export class ProductsService {
      products.product_description,
      variations.id as variation_id,
      VLD.qty_available,
-     variations.sell_price_inc_tax
+     variations.sell_price_inc_tax,
+     c.name as category_name,
+     c.id as category_id
      FROM
      products 
      inner join 
@@ -114,7 +116,10 @@ export class ProductsService {
      variation_location_details as VLD 
      on 
      variations.id = VLD.variation_id
-     
+     left join 
+     categories as c 
+     on 
+     products.category_id = c.id
      
      where (
       products.business_id = 9 
@@ -145,7 +150,9 @@ export class ProductsService {
       products.product_description,
       variations.id as variation_id,
       VLD.qty_available,
-      variations.sell_price_inc_tax
+      variations.sell_price_inc_tax,
+      c.name as category_name,
+      c.id as category_id
       FROM
       products 
       inner join 
@@ -154,6 +161,10 @@ export class ProductsService {
       variation_location_details as VLD 
       on 
       variations.id = VLD.variation_id
+      left join 
+      categories as c 
+      on 
+      products.category_id = c.id
       where (
         products.business_id = 9 
         AND 
@@ -175,14 +186,16 @@ export class ProductsService {
     const pet_products = [];
     queryResult.map((el:any) => {
     pet_products.push(
-      getSingleProduct(
+      getSingleProductDetails(
       el.variation_id,
       el.product_name,
       el.image,
       el.sell_price_inc_tax,
       el.product_description,
       el.qty_available,
-      []
+      [],
+      queryResult[0].category_name,
+      queryResult[0].category_id
     )
     )
     })
@@ -208,16 +221,29 @@ export class ProductsService {
     products.product_description,
     variations.id as variation_id,
     variations.sell_price_inc_tax,
-    VLD.qty_available
-   
+    VLD.qty_available,
+    c.name as category_name,
+    c.id as category_id
+
     FROM
     products 
+
     inner join 
-    variations on products.id = variations.product_id
+    variations on
+    products.id = variations.product_id
+
     left join 
     variation_location_details as VLD 
     on 
     variations.id = VLD.variation_id
+
+    left join 
+    categories as c 
+    on 
+    products.category_id = c.id
+
+
+
      
     where (
       products.business_id = 9 
@@ -230,7 +256,7 @@ export class ProductsService {
 
       )
       AND  
-      products.id = ${slug}
+      variations.id = ${slug}
     ;`);
     let imageQueryResult = await  this.connection.query(`
     SELECT 
@@ -242,23 +268,88 @@ export class ProductsService {
       product_images.product_id = ${queryResult[0].product_id}
       )
     ;`);
+    let queryRelatedProductResult:any = await  this.connection.query(`
+    SELECT 
+    products.id as product_id,
+    products.name as product_name,
+    products.image,
+    products.product_description,
+    variations.id as variation_id,
+    variations.sell_price_inc_tax,
+    VLD.qty_available,
+    c.name as category_name,
+    c.id as category_id
 
-   const product2 =  getSingleProduct(
+    FROM
+    products 
+
+    inner join 
+    variations on
+    products.id = variations.product_id
+
+    left join 
+    variation_location_details as VLD 
+    on 
+    variations.id = VLD.variation_id
+
+    left join 
+    categories as c 
+    on 
+    products.category_id = c.id
+
+
+
+     
+    where (
+      products.business_id = 9 
+      AND
+      products.type != 'modifier'
+      AND
+      products.deleted_at IS NULL
+      )
+      AND (
+        products.category_id = ${queryResult[0].category_id}
+      )
+      ORDER BY products.id DESC
+      LIMIT 20
+      
+    ;`);
+
+   const product2 =  getSingleProductDetails(
     queryResult[0].variation_id,
     queryResult[0].product_name,
     queryResult[0].image,
     queryResult[0].sell_price_inc_tax,
     queryResult[0].product_description,
     queryResult[0].qty_available,
-    imageQueryResult
+    imageQueryResult,
+    queryResult[0].category_name,
+    queryResult[0].category_id
     )
     const product = this.products.find((p) => p.slug === "baby-spinach");
-    const related_products = this.products
-      .filter((p) => p.type.slug === product.type.slug)
-      .slice(0, 20);
+
+    const pet_releted_products = [];
+    queryRelatedProductResult.map((el:any) => {
+      pet_releted_products.push(
+      getSingleProductDetails(
+      el.variation_id,
+      el.product_name,
+      el.image,
+      el.sell_price_inc_tax,
+      el.product_description,
+      el.qty_available,
+      [],
+      queryResult[0].category_name,
+      queryResult[0].category_id
+    )
+    )
+    })
+
+    // const related_products = pet_releted_products
+    //   .slice(0, 20);
     return {
       ...product2,
-      related_products,
+      related_products:pet_releted_products,
     };
   }
 

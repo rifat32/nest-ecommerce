@@ -7,7 +7,10 @@ import {
   Param,
   Delete,
   Query,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { CouponsService } from './coupons.service';
 import { CreateCouponDto } from './dto/create-coupon.dto';
 import { GetCouponsDto } from './dto/get-coupons.dto';
@@ -40,9 +43,10 @@ export class CouponsController {
     return this.couponsService.getCoupon(param, language);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('verify')
-  verifyCoupon(@Body('code') code: string) {
-    return this.couponsService.verifyCoupon(code);
+  verifyCoupon(@Body('code') code: string,@Request() req) {
+    return this.couponsService.verifyCoupon(code,req);
   }
 
   @Put(':id')

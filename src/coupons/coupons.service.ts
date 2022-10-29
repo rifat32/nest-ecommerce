@@ -7,6 +7,10 @@ import couponsJson from '@db/coupons.json';
 import Fuse from 'fuse.js';
 import { GetCouponsDto } from './dto/get-coupons.dto';
 import { paginate } from 'src/common/pagination/paginate';
+import { InjectConnection } from '@nestjs/typeorm';
+import { Connection } from 'mysql2';
+import { getCouponByCodeQuery, getCouponsQuery } from './queries/couponQuery';
+import { getSingleCoupon, getSingleCouponFromJson } from './data-mapper';
 
 const coupons = plainToClass(Coupon, couponsJson);
 const options = {
@@ -19,21 +23,35 @@ const fuse = new Fuse(coupons, options);
 export class CouponsService {
   private coupons: Coupon[] = coupons;
 
+
+
+  constructor(
+    @InjectConnection() private readonly connection: Connection,
+  ) { }
+
+
+
   create(createCouponDto: CreateCouponDto) {
     return this.coupons[0];
   }
 
-  getCoupons({ search, limit, page }: GetCouponsDto) {
+async  getCoupons({ search, limit, page }: GetCouponsDto) {
     if (!page) page = 1;
     if (!limit) limit = 12;
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;
-    let data: Coupon[] = this.coupons;
-    // if (text?.replace(/%/g, '')) {
-    //   data = fuse.search(text)?.map(({ item }) => item);
-    // }
+    // let data: Coupon[] = this.coupons;
+    const data = [];
+    let getCouponsQueryString = getCouponsQuery()
+    let getCouponsQueryResult: any = await this.connection.query(getCouponsQueryString);
+
+    getCouponsQueryResult.map(el => {
+data.push(getSingleCouponFromJson(el))
+    })
+  
 
     if (search) {
+      console.log("searching .......")
       const parseSearchParams = search.split(';');
       const searchText: any = [];
       for (const searchParam of parseSearchParams) {
@@ -46,11 +64,11 @@ export class CouponsService {
         }
       }
 
-      data = fuse
-        .search({
-          $and: searchText,
-        })
-        ?.map(({ item }) => item);
+      // data = fuse
+      //   .search({
+      //     $and: searchText,
+      //   })
+      //   ?.map(({ item }) => item);
     }
 
     const results = data.slice(startIndex, endIndex);
@@ -73,7 +91,21 @@ export class CouponsService {
     return `This action removes a #${id} coupon`;
   }
 
-  verifyCoupon(code: string) {
+ async verifyCoupon(code: string,req) {
+
+    let getCouponByCodeQueryString = getCouponByCodeQuery(code,req.user)
+
+    let getCouponByCodeQueryQueryResult: any = await this.connection.query(getCouponByCodeQueryString);
+if(getCouponByCodeQueryQueryResult.length){
+  return getSingleCoupon(getCouponByCodeQueryQueryResult[0]);
+} else {
+  return null;
+}
+
+
+
+
+
     return {
       is_valid: true,
       coupon: {

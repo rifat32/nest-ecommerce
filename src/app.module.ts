@@ -42,7 +42,7 @@ import { JwtStrategy } from './auth/jwt.strategy';
        database: 'bdpetcare_pos_new',
       // username: 'bdpetcare_admin',
       // password: 'bdpetcare_admin',
-      // database: 'bdpetcare_ecom',
+      // database: 'bdpetcare_pos',
       
 
       

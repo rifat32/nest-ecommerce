@@ -5,12 +5,39 @@ const  randomXToY = (minVal,maxVal) =>
   var randVal = minVal+(Math.random()*(maxVal-minVal));
   return Math.round(randVal);
 }
-export const insertOrderQuery = (createOrderInput:CreateOrderDto,user) => {
+export const insertOrderQuery = (createOrderInput:CreateOrderDto,user,couponData) => {
     let timeNow = new Date().toISOString().slice(0, 19).replace('T', ' ');
     let userId = 1;
     if(user) {
       userId = user.userId
     }
+
+    let coupon_discount = 0.0;
+
+    
+    if(couponData){
+    const {coupon} = couponData
+      console.log("coupon.type",coupon.type)
+      if(coupon.type == "fixed") {
+        coupon_discount += coupon.amount;
+        console.log("coupon.amount",coupon.amount)
+        console.log("coupon_discount",coupon_discount)
+      }
+      else if (coupon.type == "percentage") {
+        coupon_discount += (createOrderInput.amount / 100) * coupon.amount
+      }
+
+    }
+    
+
+
+    console.log("coupon_discount............",coupon_discount)
+
+
+
+
+
+
     return `
     INSERT INTO orders 
     (user_id,
@@ -23,6 +50,7 @@ export const insertOrderQuery = (createOrderInput:CreateOrderDto,user) => {
     discount_amount,
     grand_total,
     coupon_discount,
+    coupon_id,
     code,
     date,
     viewed,
@@ -46,7 +74,8 @@ export const insertOrderQuery = (createOrderInput:CreateOrderDto,user) => {
     0,
     0,
     ${createOrderInput.amount},
-    0,
+    ${coupon_discount},
+    ${createOrderInput.coupon_id},
     ${randomXToY(111111, 999999)},
     1648981255,
     0,
