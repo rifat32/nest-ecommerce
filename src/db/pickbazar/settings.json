@@ -20,7 +20,7 @@
     "useOtp": false,
     "currency": "BDT",
     "taxClass": 1,
-    "siteTitle": "BDPetcare",
+    "siteTitle": "BD Pet Care",
     "deliveryTime": [
       {
         "title": "Express Delivery",
