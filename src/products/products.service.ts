@@ -128,6 +128,8 @@ export class ProductsService {
       AND
       products.type != 'modifier'
       AND
+      VLD.qty_available != 0
+      AND
       products.deleted_at IS NULL
       )
      ${nameSearch}
@@ -171,6 +173,8 @@ export class ProductsService {
         products.category_id != 30
         AND
         products.type != 'modifier'
+        AND
+        VLD.qty_available != 0
         AND
         products.deleted_at IS NULL
         )
