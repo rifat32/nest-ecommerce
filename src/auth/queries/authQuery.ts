@@ -34,38 +34,6 @@ export const insertUserQuery = (createUserInput: RegisterDto) => {
      0,
      0,
      '${`[
-      {
-        "id": 1,
-        "title": "Billing",
-        "type": "billing",
-        "default": 0,
-        "address": {
-          "zip": "99614",
-          "city": "Dhaka",
-          "state": "Dhaka",
-          "country": "Bangladesh",
-          "street_address": "Dhanmondi"
-        },
-        "customer_id": 2,
-        "created_at":  "${timeNow}",
-        "updated_at":  "${timeNow}"
-      },
-      {
-        "id": 2,
-        "title": "Shipping",
-        "type": "shipping",
-        "default": 0,
-        "address": {
-            "zip": "99614",
-            "city": "Dhaka",
-            "state": "Dhaka",
-            "country": "Bangladesh",
-            "street_address": "Dhanmondi"
-          },
-        "customer_id": 2,
-        "created_at":  "${timeNow}",
-        "updated_at":  "${timeNow}"
-      }
     ]`}',
 
     '${timeNow}',

@@ -97,23 +97,29 @@ export class UsersService {
   const address = JSON.parse(getUserQueryResult[0].address)
   if(updateUserDto.address.length) {
     updateUserDto.address.map((el:any)=> {
-      address.map((dbEl,dbIndex) => {
-        if(!el.id){
-          el.id = address[address.length - 1].id + 1
-          address.push(el)
-        }
-        if(el.id == dbEl.id) {
-          address[dbIndex] = {...address[dbIndex],title:el.title,address:el.address,updated_at:timeNow}
-        
-        }
-      })
+      if(!address.length){
+        el.id = 1
+        address.push(el)
+      } else {
+        address.map((dbEl,dbIndex) => {
+          if(!el.id){
+            el.id = address[address.length - 1].id + 1
+            address.push(el)
+          }
+          if(el.id == dbEl.id) {
+            address[dbIndex] = {...address[dbIndex],title:el.title,address:el.address,updated_at:timeNow}
+          
+          }
+        })
+      }
+    
   
     })
     updateUserInfo.push({
       name:'address',
       value:JSON.stringify(address)
     })
-    // console.log(address)
+    //  console.log(address)
 
   }
 
