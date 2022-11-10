@@ -6,6 +6,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from './constants';
 
 
+
 @Module({
   imports: [
     PassportModule,
@@ -13,8 +14,10 @@ import { jwtConstants } from './constants';
       secret: jwtConstants.secret,
       signOptions: { expiresIn: '60000s' },
     }),
+   
   ],
   controllers: [AuthController],
   providers: [AuthService],
+
 })
 export class AuthModule {}

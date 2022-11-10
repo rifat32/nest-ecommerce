@@ -119,7 +119,7 @@ export class UsersService {
       name:'address',
       value:JSON.stringify(address)
     })
-    //  console.log(address)
+      console.log("update-user-info .............",updateUserInfo)
 
   }
 

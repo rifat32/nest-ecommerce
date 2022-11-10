@@ -13,6 +13,7 @@ import {
   OtpResponse,
   VerifyOtpDto,
   OtpDto,
+  RegisterResponse,
 } from './dto/create-auth.dto';
 import { v4 as uuidv4 } from 'uuid';
 import { plainToClass } from 'class-transformer';
@@ -22,9 +23,11 @@ import usersJson from '@db/users.json';
 import { InjectConnection } from '@nestjs/typeorm';
 import { Connection } from 'mysql2';
 import * as bcrypt from 'bcrypt';
-import { getUserByEmailQuery, getUserByIdQuery, insertUserQuery } from './queries/authQuery';
+import { getUserByEmailQuery, getUserByIdQuery, getUserByPhoneAndTokenQuery, getUserByPhoneQuery, insertUserQuery, updateUserByIdQuery } from './queries/authQuery';
 import { JwtService } from '@nestjs/jwt';
 import { getSingleUser } from './data-mapper';
+import axios from 'axios';
+
 const users = plainToClass(User, usersJson);
 
 @Injectable()
@@ -34,15 +37,31 @@ export class AuthService {
 
   constructor(
     @InjectConnection() private readonly connection: Connection,
-    private jwtService: JwtService
+    private jwtService: JwtService,
+  
   ) { }
 
 
-  async register(createUserInput: RegisterDto): Promise<AuthResponse> {
+  async register(createUserInput: RegisterDto): Promise<RegisterResponse> {
     try {
+
+      let getUserExistQueryString = getUserByEmailQuery(createUserInput.email);    
+      let getUserExistQueryResult: any = await this.connection.query(getUserExistQueryString);
+ 
+      if(getUserExistQueryResult[0]?.email) {
+        return {
+          token: "",
+          message:"email already taken",
+          permissions: ['super_admin', 'customer'],
+        };
+      }
+
+
+
+
       const salt = await bcrypt.genSalt();
-const hashPassword = await bcrypt.hash(createUserInput.password, salt);
-    createUserInput.password = hashPassword;
+      const hashPassword = await bcrypt.hash(createUserInput.password, salt);
+     createUserInput.password = hashPassword;
 
     let insertUserQueryString = insertUserQuery(createUserInput);
     let insertUserQueryResult: any = await this.connection.query(insertUserQueryString);
@@ -70,12 +89,14 @@ const hashPassword = await bcrypt.hash(createUserInput.password, salt);
     return {
       token: token,
       permissions: ['super_admin', 'customer'],
+      message:"Registration Successfull."
     };
     } catch (error) {
       console.log('error.......',error)
       return {
         token: '',
         permissions: [],
+        message:"Something went wrong!"
       };
     }
    
@@ -116,30 +137,115 @@ const hashPassword = await bcrypt.hash(createUserInput.password, salt);
       message: 'Password change successful',
     };
   }
+
   async forgetPassword(
     forgetPasswordInput: ForgetPasswordDto,
   ): Promise<CoreResponse> {
-    console.log(forgetPasswordInput);
+    function randomIntFromInterval(min, max) { // min and max included 
+      return Math.floor(Math.random() * (max - min + 1) + min)
+    }
+   
+ 
+    let getUserExistQueryString = getUserByPhoneQuery(forgetPasswordInput.email);    
+    let getUserExistQueryResult: any = await this.connection.query(getUserExistQueryString);
 
-    return {
-      success: true,
-      message: 'Password change successful',
-    };
+    if(!getUserExistQueryResult[0]?.email) {
+      return {
+        success: false,
+        message: 'No User Found with this phone number',
+      }; 
+    }
+ 
+
+let token = randomIntFromInterval(11111, 99999);
+const updateUserInfo = [
+  {
+  name:"password_reset_token",
+  value:token
+  }
+      ]
+let updateUserQueryString = updateUserByIdQuery(getUserExistQueryResult[0].id,updateUserInfo);
+let updateUserQueryResult: any = await this.connection.query(updateUserQueryString);
+
+
+axios.post('https://bulksmsbd.net/api/smsapi',{
+  "api_key" : "eRsuWT0e7ZTqBXsdCElB",
+  "senderid" : "8809617642621",
+  "number" : getUserExistQueryResult[0].phone,
+  "message" : `Use this code to change your password..${token}. this is your email ${getUserExistQueryResult[0].email}`
+})
+.then(response => {
+
+})
+return {
+  success: true,
+  message: 'Message has sent',
+}; 
+
+    // const url = `example.com/auth/confirm?token=${token}`;
+
+    // await this.mailerService.sendMail({
+    //   to: forgetPasswordInput.email,
+    //   // from: '"Support Team" <support@example.com>', // override default from
+    //   subject: 'Welcome to Nice App! Confirm your Email',
+    //   template: './confirmation', // `.hbs` extension is appended automatically
+    //   context: { // ✏️ filling curly brackets with content
+    //     name: "",
+    //     url,
+    //   },
+    // });
+  
+
+
+
+
+
+
+    
   }
   async verifyForgetPasswordToken(
     verifyForgetPasswordTokenInput: VerifyForgetPasswordDto,
   ): Promise<CoreResponse> {
     console.log(verifyForgetPasswordTokenInput);
+    let getUserExistQueryString = getUserByPhoneAndTokenQuery(verifyForgetPasswordTokenInput.email,verifyForgetPasswordTokenInput.token);    
+    let getUserExistQueryResult: any = await this.connection.query(getUserExistQueryString);
 
+    if(!getUserExistQueryResult[0]?.email) {
+      return {
+        success: false,
+        message: 'Invalid Token',
+      }; 
+    }
+ 
     return {
       success: true,
-      message: 'Password change successful',
+      message: 'Change your password',
     };
   }
   async resetPassword(
     resetPasswordInput: ResetPasswordDto,
   ): Promise<CoreResponse> {
     console.log(resetPasswordInput);
+    let getUserExistQueryString = getUserByPhoneAndTokenQuery(resetPasswordInput.email,resetPasswordInput.token);    
+    let getUserExistQueryResult: any = await this.connection.query(getUserExistQueryString);
+
+    if(!getUserExistQueryResult[0]?.email) {
+      return {
+        success: false,
+        message: 'Invalid Token Go Back',
+      }; 
+    }
+    const salt = await bcrypt.genSalt();
+    const hashPassword = await bcrypt.hash(resetPasswordInput.password, salt);
+    resetPasswordInput.password = hashPassword;
+    const updateUserInfo = [
+      {
+      name:"password",
+      value:hashPassword
+      }
+          ]
+    let updateUserQueryString = updateUserByIdQuery(getUserExistQueryResult[0].id,updateUserInfo);
+    let updateUserQueryResult: any = await this.connection.query(updateUserQueryString);
 
     return {
       success: true,
@@ -199,7 +305,7 @@ const hashPassword = await bcrypt.hash(createUserInput.password, salt);
     let getUserQueryString = getUserByIdQuery(req.user.userId);
     let getUserQueryResult: any = await this.connection.query(getUserQueryString);
     delete getUserQueryResult[0].password;
-
+console.log("get user...", getUserQueryResult[0])
     return getSingleUser(getUserQueryResult[0]);
   }
 

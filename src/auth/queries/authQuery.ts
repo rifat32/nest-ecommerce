@@ -19,7 +19,7 @@ export const insertUserQuery = (createUserInput: RegisterDto) => {
     banned,
     remaining_uploads,
     address,
-
+    phone,
     created_at,
     updated_at
       ) 
@@ -33,9 +33,8 @@ export const insertUserQuery = (createUserInput: RegisterDto) => {
      0.0,
      0,
      0,
-     '${`[
-    ]`}',
-
+     '${`[]`}',
+     '${createUserInput.phone}',
     '${timeNow}',
     '${timeNow}'
     )
@@ -64,6 +63,41 @@ export const getUserByEmailQuery = (userEmail) => {
       ;
         `
 }
+export const getUserByPhoneQuery = (userPhone) => {
+  return `
+  SELECT 
+  *
+  
+  FROM 
+  users2 
+  WHERE (users2.phone = '${userPhone}')
+      ;
+        `
+}
+export const getUserByPhoneAndTokenQuery = (userPhone,token) => {
+  return `
+  SELECT 
+  *
+  
+  FROM 
+  users2 
+  WHERE (users2.phone = '${userPhone}' AND users2.password_reset_token = '${token}')
+      ;
+        `
+}
 
+export const updateUserByIdQuery = (userId,updateUserInfo) => {
+  let setInfo = ``;
+  updateUserInfo.map(el => {
+    setInfo += `${el.name} = '${el.value}'`
+  })
 
+  return `
+  UPDATE 
+  users2
+  SET ${setInfo}
+  WHERE (users2.id = '${userId}')
+      ;
+        `
+}
 

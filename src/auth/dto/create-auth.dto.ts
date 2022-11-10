@@ -8,7 +8,7 @@ enum Permission {
   STAFF = 'Staff',
   CUSTOMER = 'Customer',
 }
-export class RegisterDto extends PickType(User, ['name', 'email', 'password']) {
+export class RegisterDto extends PickType(User, ['name', 'email', 'password',"phone"]) {
   permission: Permission = Permission.CUSTOMER;
 }
 
@@ -39,6 +39,11 @@ export class ResetPasswordDto {
 
 export class AuthResponse {
   token: string;
+  permissions: string[];
+}
+export class RegisterResponse {
+  token: string;
+  message: string;
   permissions: string[];
 }
 export class CoreResponse extends CoreMutationOutput {}

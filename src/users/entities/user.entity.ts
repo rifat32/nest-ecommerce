@@ -14,5 +14,6 @@ export class User extends CoreEntity {
   managed_shop?: Shop;
   is_active?: boolean = true;
   address?: Address[];
+  phone:string
   // orders?: Order[];
 }
