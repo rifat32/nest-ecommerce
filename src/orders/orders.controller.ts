@@ -25,12 +25,45 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
+
+
   @UseGuards(JwtAuthGuard)
   @Post()
   create(@Body() createOrderDto: CreateOrderDto,@Request() req) {
     return this.ordersService.create(createOrderDto,req);
-
   }
+
+  
+  @Post("/guest")
+  createGuest(@Body() createOrderDto: CreateOrderDto,@Request() req) {
+    return this.ordersService.create(createOrderDto,req);
+  }
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   @UseGuards(JwtAuthGuard)
   @Get()
   async getOrders(@Query() query: GetOrdersDto,@Request() req): Promise<OrderPaginator> {

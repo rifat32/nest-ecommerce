@@ -102,6 +102,52 @@ if(getCouponByIdQueryQueryResult.length){
 
     return order;
   }
+  async createGuest(createOrderInput: CreateOrderDto,req) {
+    let user = req.user?req.user:null;
+
+    // get coupon
+    let getCouponByIdQueryString = getCouponByIdQuery(createOrderInput.coupon_id,req.user)
+    let getCouponByIdQueryQueryResult: any = await this.connection.query(getCouponByIdQueryString);
+    let coupon = null;
+
+
+
+
+   
+
+
+
+
+if(getCouponByIdQueryQueryResult.length){
+  coupon = getSingleCoupon(getCouponByIdQueryQueryResult[0]);
+} 
+ console.log("createOrderInput.coupon_id",createOrderInput.coupon_id)
+    console.log("getCouponByIdQueryQueryResult[0]",coupon)
+ // end get coupon
+
+//  insert order
+    let insertOrderQueryString = insertOrderQuery(createOrderInput,user,coupon)
+     console.log("query........",insertOrderQueryString)
+    let insertOrderQueryResult: any = await this.connection.query(insertOrderQueryString);
+    let orderId = insertOrderQueryResult.insertId
+
+    for (let i = 0; i < createOrderInput.products.length; i++) {
+      let insertOrderDetailsQueryString = insertOrderDetailsQuery(createOrderInput, orderId, createOrderInput.products[i])
+      let insertOrderDetailsQueryResult: any = await this.connection.query(insertOrderDetailsQueryString);
+    }
+//  end insert order 
+//   get order 
+    let getOrderQueryString = getOrderQuery(orderId);
+
+    let orderPos: any = await this.connection.query(getOrderQueryString);
+  //  end get order 
+    // console.log("orderPos",orderPos)
+    let order = getSingleOrder(orderPos[0])
+
+
+    return order;
+  }
+
 
  async getOrders({
     limit,
@@ -112,10 +158,6 @@ if(getCouponByIdQueryQueryResult.length){
     shop_id,
     
   }: GetOrdersDto,req){
-
-
-
-
 
 
 

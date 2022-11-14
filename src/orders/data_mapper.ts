@@ -76,6 +76,16 @@ class Shipping   {
   }
 
   export const getSingleOrderDetails = (orderPos,orderPosDetails,orderStatus) => {
+    let discount = (orderPos.discount_amount * 1);
+    if(orderPos.discount_type){
+      if(orderPos.discount_type == "percent") {
+       
+        discount = (orderPos.grand_total / 100) * (orderPos.discount_amount * 1)
+  
+        orderPos.discount_type
+      }
+    }
+
     let shipping_address = JSON.parse(orderPos.shipping_address)
     console.log(orderPos.code)
     return  {
@@ -92,7 +102,7 @@ class Shipping   {
         "coupon_id": orderPos.coupon_id,
         "parent_id": null,
         "shop_id": null,
-        "discount": orderPos.coupon_discount,
+        "discount": (orderPos.coupon_discount*1)+discount,
         "payment_id": null,
         "payment_gateway": "CASH_ON_DELIVERY",
         shipping_address: {
@@ -110,7 +120,7 @@ class Shipping   {
             street_address: shipping_address.billing_address?.street_address
           },
         "logistics_provider": null,
-        "delivery_fee": 0,
+        "delivery_fee": (orderPos.shipping * 1) + (orderPos.area_shipping * 1),
         "delivery_time": "Express Delivery",
         "deleted_at": null,
         "created_at": orderPos.created_at,
@@ -154,7 +164,7 @@ class Shipping   {
             "coupon_id": orderPos.coupon_id,
             "parent_id": 66,
             "shop_id": 7,
-            "discount": orderPos.coupon_discount,
+            "discount": (orderPos.coupon_discount*1)+discount,
             "payment_id": null,
             "payment_gateway": "CASH_ON_DELIVERY",
             shipping_address: {
@@ -484,6 +494,15 @@ class Shipping   {
 
 
 export const getSingleOrder = (orderPos) => {
+  let discount = (orderPos.discount_amount * 1);
+  if(orderPos.discount_type){
+    if(orderPos.discount_type == "percent") {
+     
+      discount = (orderPos.grand_total / 100) * (orderPos.discount_amount * 1)
+
+      orderPos.discount_type
+    }
+  }
     let shipping_address = JSON.parse(orderPos.shipping_address)
     console.log(orderPos.code)
     return  {
@@ -511,7 +530,7 @@ export const getSingleOrder = (orderPos) => {
         "coupon_id": orderPos.coupon_id,
         "parent_id": null,
         "shop_id": null,
-        "discount": orderPos.coupon_discount,
+        "discount": (orderPos.coupon_discount*1)+ discount,
         "payment_id": null,
         "payment_gateway": "CASH_ON_DELIVERY",
         shipping_address: {
@@ -626,7 +645,7 @@ export const getSingleOrder = (orderPos) => {
             "coupon_id": orderPos.coupon_id,
             "parent_id": 66,
             "shop_id": 7,
-            "discount": orderPos.coupon_discount,
+            "discount": (orderPos.coupon_discount*1)+discount,
             "payment_id": null,
             "payment_gateway": "CASH_ON_DELIVERY",
             shipping_address: {
@@ -981,7 +1000,15 @@ console.log("order status",detailsStatus)
 return detailsStatus;
 }
 export const getSingleOrderDetailsInDashboard = (orderPos,orderPosDetails,orderStatus) => {
+  let discount = (orderPos.discount_amount * 1);
+  if(orderPos.discount_type){
+    if(orderPos.discount_type == "percent") {
+     
+      discount = (orderPos.grand_total / 100) * (orderPos.discount_amount * 1)
 
+      orderPos.discount_type
+    }
+  }
 
   
   let shipping_address = JSON.parse(orderPos.shipping_address)
@@ -1002,7 +1029,7 @@ export const getSingleOrderDetailsInDashboard = (orderPos,orderPosDetails,orderS
       "coupon_id": orderPos.coupon_id,
       "parent_id": null,
       "shop_id": null,
-      "discount": orderPos.coupon_discount,
+      "discount": (orderPos.coupon_discount*1)+discount,
       "payment_id": null,
       "payment_gateway": "CASH_ON_DELIVERY",
       shipping_address: {
@@ -1064,7 +1091,7 @@ export const getSingleOrderDetailsInDashboard = (orderPos,orderPosDetails,orderS
           "coupon_id": orderPos.coupon_id,
           "parent_id": 66,
           "shop_id": 7,
-          "discount": orderPos.coupon_discount,
+          "discount": (orderPos.coupon_discount*1)+discount,
           "payment_id": null,
           "payment_gateway": "CASH_ON_DELIVERY",
           shipping_address: {
