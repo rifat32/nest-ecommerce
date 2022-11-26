@@ -97,7 +97,13 @@ class Shipping   {
         status:   mapStatus(orderPos.delivery_status,orderStatus),
           amount: orderPos.grand_total,
           sales_tax: 0,
-          paid_total: orderPos.grand_total,
+          paid_total: (orderPos.grand_total 
+            - 
+            ((orderPos.coupon_discount*1)+discount)
+            +
+            (orderPos.shipping * 1) + (orderPos.area_shipping * 1)
+            
+            ),
           total: orderPos.grand_total,
         "coupon_id": orderPos.coupon_id,
         "parent_id": null,

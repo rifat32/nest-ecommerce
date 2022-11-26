@@ -50,7 +50,11 @@ export const getCouponsQuery = () => {
   *
   FROM 
   coupons 
-  
+  WHERE (
+   
+    expire_at > NOW()
+    
+    )
       ;
         `
 }
@@ -63,7 +67,12 @@ export const getCouponByCodeQuery = (code,user) => {
   *
   FROM 
   coupons 
-  WHERE (coupons.code = '${code}')
+  WHERE (
+    coupons.code = '${code}'
+    AND
+    expire_at > NOW()
+    
+    )
       ;
         `
 }

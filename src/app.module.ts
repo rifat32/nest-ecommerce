@@ -39,7 +39,7 @@ import { JwtStrategy } from './auth/jwt.strategy';
       port: 3306,
        username: 'root',
        password: '',
-       database: 'bdpetcare_pos_new',
+       database: 'bdpetcare',
       // username: 'bdpetcare_admin',
       // password: 'bdpetcare_admin',
       // database: 'bdpetcare_pos',
