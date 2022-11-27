@@ -123,8 +123,26 @@ export class CategoriesService {
     const results = pet_categories.slice(startIndex, endIndex);
     // const results = data.slice(startIndex, endIndex);
     const url = `/categories?search=${search}&limit=${limit}&parent=${parent}`;
+
+   let brands  = await  this.connection.query(`
+    SELECT 
+    brands.id,
+    brands.name
+   
+    FROM
+    brands 
+    where (
+      brands.business_id = 9 
+    AND
+      brands.deleted_at IS NULL
+
+      )
+    
+     
+    ;`);
     return {
       data: results,
+      brands:brands,
       ...paginate(data.length, page, limit, results.length, url),
     };
   }

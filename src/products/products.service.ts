@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { ConsoleLogger, Inject, Injectable } from '@nestjs/common';
 import { plainToClass } from 'class-transformer';
 import { CreateProductDto } from './dto/create-product.dto';
 import { GetProductsDto, ProductPaginator } from './dto/get-products.dto';
@@ -84,15 +84,24 @@ export class ProductsService {
             nameSearch  = `AND (products.name LIKE ${`'%${el.name}%'`})`
           }
           // console.log("search......",el["categories.slug"])
-          if(el["categories.slug"]){
+          if(el["brands"]){
             categorySearch  = ` 
             AND (
-              products.category_id = ${el["categories.slug"]}
-              OR
-              products.sub_category_id = ${el["categories.slug"]}
+              products.brand_id = ${el["brands"]}
+              
             )
             `
           }
+          // if(el["categories.slug"]){
+          //   categorySearch  = ` 
+          //   AND (
+          //     products.category_id = ${el["categories.slug"]}
+          //     OR
+          //     products.sub_category_id = ${el["categories.slug"]}
+          //   )
+          //   `
+          // }
+          console.log(el)
           
         })
       
@@ -120,6 +129,10 @@ export class ProductsService {
      categories as c 
      on 
      products.category_id = c.id
+     left join 
+     brands as b
+     on 
+     products.brand_id = b.id
      
      where (
       products.business_id = 9 
