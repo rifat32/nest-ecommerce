@@ -27,6 +27,7 @@ export class UserAddressInput {
   city: string;
   state: string;
   zip: string;
+  title:string;
 }
 
 export class ConnectProductOrderPivot {
