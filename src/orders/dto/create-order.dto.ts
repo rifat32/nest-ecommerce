@@ -18,6 +18,7 @@ export class CreateOrderDto {
   card?: CardInput;
   billing_address?: UserAddressInput;
   shipping_address?: UserAddressInput;
+  shipping_charge?:ShippingChargeInput;
   language?: string;
 }
 
@@ -28,6 +29,11 @@ export class UserAddressInput {
   state: string;
   zip: string;
   title:string;
+}
+export class ShippingChargeInput {
+  id: number;
+  name: string;
+  value: number;
 }
 
 export class ConnectProductOrderPivot {

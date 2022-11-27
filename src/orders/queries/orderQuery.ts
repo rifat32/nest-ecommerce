@@ -71,7 +71,7 @@ export const insertOrderQuery = (createOrderInput:CreateOrderDto,user,couponData
     ,
     'unpaid',
     0,
-    0,
+    ${createOrderInput.shipping_charge.value},
     0,
     ${createOrderInput.amount},
     ${coupon_discount},
