@@ -55,6 +55,16 @@ export class AuthService {
           permissions: ['super_admin', 'customer'],
         };
       }
+      let getUserExistQueryByPhoneString = getUserByPhoneQuery(createUserInput.phone);    
+      let getUserExistQueryByPhoneResult: any = await this.connection.query(getUserExistQueryByPhoneString);
+ 
+      if(getUserExistQueryByPhoneResult[0]?.email) {
+        return {
+          token: "",
+          message:"phone number already taken",
+          permissions: ['super_admin', 'customer'],
+        };
+      }
 
 
 

@@ -79,28 +79,29 @@ export class ProductsService {
 // console.log(searchText)
         let nameSearch = "";
         let categorySearch = "";
+        let brandSearch = "";
         searchText.map(el => {
           if(el.name){
             nameSearch  = `AND (products.name LIKE ${`'%${el.name}%'`})`
           }
           // console.log("search......",el["categories.slug"])
           if(el["brands"]){
-            categorySearch  = ` 
+            brandSearch  = ` 
             AND (
               products.brand_id = ${el["brands"]}
               
             )
             `
           }
-          // if(el["categories.slug"]){
-          //   categorySearch  = ` 
-          //   AND (
-          //     products.category_id = ${el["categories.slug"]}
-          //     OR
-          //     products.sub_category_id = ${el["categories.slug"]}
-          //   )
-          //   `
-          // }
+          if(el["categories.slug"]){
+            categorySearch  = ` 
+            AND (
+              products.category_id = ${el["categories.slug"]}
+              OR
+              products.sub_category_id = ${el["categories.slug"]}
+            )
+            `
+          }
           console.log(el)
           
         })
@@ -147,6 +148,7 @@ export class ProductsService {
       )
      ${nameSearch}
      ${categorySearch}
+     ${brandSearch}
      ORDER BY products.id DESC
      ;`
     //  console.log(rawQuery)
